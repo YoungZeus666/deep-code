@@ -138,7 +138,10 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+skills/
 .agents/
-.DS_Store
+.claude
 AGENTS.md
+CLAUDE.md
+.DS_Store
 __pycache__/

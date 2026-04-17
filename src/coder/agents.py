@@ -99,30 +99,52 @@ def _load_agents_md(workspace: Path) -> str | None:
     return None
 
 
-def _load_skills(workspace: Path) -> list[tuple[str, str]]:
-    """Load all skill files from .agents/skills/ directory.
+def _load_skills_from_dir(skills_dir: Path) -> list[tuple[str, str]]:
+    """Load skills from a directory. Each skill is a subdirectory containing SKILL.md.
 
+    Layout: skills_dir/skill-name/SKILL.md (+ optional references/*.md)
     Returns a list of (skill_name, content) tuples.
     """
-    skills_dir = workspace / ".agents" / "skills"
     if not skills_dir.is_dir():
         return []
 
     skills: list[tuple[str, str]] = []
-    for path in sorted(skills_dir.iterdir()):
-        if path.is_file() and path.suffix == ".md":
-            try:
-                content = path.read_text(encoding="utf-8", errors="replace")
-                name = path.stem
-                skills.append((name, content))
-            except OSError:
-                continue
+    for entry in sorted(skills_dir.iterdir()):
+        if not entry.is_dir():
+            continue
+        skill_md = entry / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+        try:
+            parts = [skill_md.read_text(encoding="utf-8", errors="replace")]
+            refs_dir = entry / "references"
+            if refs_dir.is_dir():
+                for ref in sorted(refs_dir.iterdir()):
+                    if ref.is_file() and ref.suffix == ".md":
+                        ref_text = ref.read_text(encoding="utf-8", errors="replace")
+                        parts.append(f"\n\n--- Reference: {ref.name} ---\n\n{ref_text}")
+            skills.append((entry.name, "\n".join(parts)))
+        except OSError:
+            continue
+    return skills
+
+
+def _load_all_skills(workspace: Path) -> list[tuple[str, str]]:
+    """Load skills from both skills/ and .agents/skills/ directories.
+
+    Root-level skills/ is loaded first, then .agents/skills/.
+    Duplicates (same name) are kept — both are included.
+    """
+    skills: list[tuple[str, str]] = []
+    skills.extend(_load_skills_from_dir(workspace / "skills"))
+    skills.extend(_load_skills_from_dir(workspace / ".agents" / "skills"))
     return skills
 
 
 def _build_system_prompt(workspace: Path) -> str:
     """Build the full system prompt by combining the base prompt with
-    AGENTS.md project context and .agents/skills/ skill definitions.
+    AGENTS.md project context and skill definitions from skills/ and
+    .agents/skills/.
     """
     parts: list[str] = [ORCHESTRATOR_PROMPT]
 
@@ -134,10 +156,10 @@ def _build_system_prompt(workspace: Path) -> str:
             + agents_md
         )
 
-    # Load skills from .agents/skills/
-    skills = _load_skills(workspace)
+    # Load skills from skills/ and .agents/skills/
+    skills = _load_all_skills(workspace)
     if skills:
-        parts.append("\n\n--- Available Skills (from .agents/skills/) ---\n")
+        parts.append("\n\n--- Available Skills ---\n")
         for name, content in skills:
             parts.append(f"\n### Skill: {name}\n\n{content}")
 

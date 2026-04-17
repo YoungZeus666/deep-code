@@ -13,6 +13,8 @@ from rich.panel import Panel
 from coder.agents import create_coding_agent
 from coder.config import AppConfig, load_config
 
+SKILL_DESC_MAX_LEN = 200
+
 HELP_TEXT = """\
 **AI Deep Coder** - AI Programming Assistant
 
@@ -181,16 +183,40 @@ def main() -> None:
 
     # Report what was loaded
     agents_md = config.workspace / "AGENTS.md"
-    skills_dir = config.workspace / ".agents" / "skills"
-    loaded_agents_md = agents_md.is_file()
-    skill_count = 0
-    if skills_dir.is_dir():
-        skill_count = sum(1 for f in skills_dir.iterdir() if f.suffix == ".md")
-
-    if loaded_agents_md:
+    if agents_md.is_file():
         console.print("[green]Loaded AGENTS.md[/green]")
-    if skill_count > 0:
-        console.print(f"[green]Loaded {skill_count} skill(s)[/green]")
+
+    skill_info: list[tuple[str, str]] = []  # (name, description)
+    for sdir in (config.workspace / "skills", config.workspace / ".agents" / "skills"):
+        if sdir.is_dir():
+            for entry in sorted(sdir.iterdir()):
+                skill_md = entry / "SKILL.md" if entry.is_dir() else None
+                if not skill_md or not skill_md.is_file():
+                    continue
+                desc = ""
+                try:
+                    text = skill_md.read_text(encoding="utf-8", errors="replace")
+                    if text.startswith("---"):
+                        end = text.find("---", 3)
+                        if end != -1:
+                            for line in text[3:end].splitlines():
+                                if line.strip().startswith("description:"):
+                                    desc = line.split(":", 1)[1].strip()
+                                    break
+                except OSError:
+                    pass
+                # Truncate to first line
+                first_line = desc.split("\n")[0]
+                if len(first_line) > SKILL_DESC_MAX_LEN:
+                    first_line = first_line[:SKILL_DESC_MAX_LEN - 3] + "..."
+                skill_info.append((entry.name, first_line))
+
+    console.print(f"[green]Loaded {len(skill_info)} skill(s)[/green]")
+    for name, desc in skill_info:
+        if desc:
+            console.print(f"  [dim]- {name}: {desc}[/dim]")
+        else:
+            console.print(f"  [dim]- {name}[/dim]")
 
     console.print("[dim]Agent ready.[/dim]\n")
 
