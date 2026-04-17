@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from deepagents import SubAgent, create_deep_agent
 from deepagents.backends import LocalShellBackend
+from langchain_openai import ChatOpenAI
 from langgraph.graph.state import CompiledStateGraph
 
 from coder.config import AppConfig
@@ -17,7 +20,27 @@ from coder.prompts import (
 from coder.tools import get_custom_tools
 
 
-def build_subagents(model: str) -> list[SubAgent]:
+def _build_chat_model(config: AppConfig) -> Any:
+    """Build a chat model instance from config.
+
+    Three modes:
+      - anthropic → "anthropic:<model>" string, resolved by Deep Agents
+      - openai    → "openai:<model>" string, resolved by Deep Agents
+      - openai-like → ChatOpenAI instance with custom base_url and api_key,
+        compatible with any OpenAI-like endpoint (Qwen, MiniMax, Kimi,
+        DeepSeek, GLM, Doubao, Ollama, vLLM, LiteLLM, etc.).
+    """
+    if config.provider == "openai-like":
+        return ChatOpenAI(
+            model=config.model_name,
+            base_url=config.base_url,
+            api_key=config.api_key,
+        )
+    # Native provider — pass "provider:model" string for Deep Agents
+    return f"{config.provider}:{config.model_name}"
+
+
+def build_subagents(model: Any) -> list[SubAgent]:
     """Create the four specialized subagent specifications.
 
     Each subagent inherits the parent's filesystem and execute tools
@@ -67,17 +90,18 @@ def build_subagents(model: str) -> list[SubAgent]:
 def create_coding_agent(config: AppConfig) -> CompiledStateGraph:
     """Create the main AI Deep Coder orchestrator agent.
 
-    The returned agent has built-in tools (filesystem, execute, planning,
-    subagent delegation) plus any custom tools from tools.py.
+    Supports native providers (anthropic, openai) and any OpenAI-compatible
+    provider via the openai-like mode.
     """
     backend = LocalShellBackend(
         root_dir=config.workspace,
     )
-    subagents = build_subagents(config.model)
+    model = _build_chat_model(config)
+    subagents = build_subagents(model)
     custom_tools = get_custom_tools()
 
     return create_deep_agent(
-        model=config.model,
+        model=model,
         system_prompt=ORCHESTRATOR_PROMPT,
         subagents=subagents,
         backend=backend,

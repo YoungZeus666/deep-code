@@ -33,7 +33,8 @@ def print_welcome(console: Console, config: AppConfig) -> None:
     console.print(
         Panel(
             f"[bold]AI Deep Coder[/bold] v0.1.0\n"
-            f"Model: [cyan]{config.model}[/cyan]\n"
+            f"Provider: [cyan]{config.provider}[/cyan]\n"
+            f"Model: [cyan]{config.model_name}[/cyan]\n"
             f"Workspace: [cyan]{config.workspace}[/cyan]\n\n"
             f"[dim]Type /help for commands, /quit to exit.[/dim]",
             title="Welcome",
@@ -56,7 +57,7 @@ def handle_slash_command(command: str, config: AppConfig, console: Console) -> b
         return True
 
     if cmd == "/model":
-        console.print(f"Current model: [cyan]{config.model}[/cyan]")
+        console.print(f"Current model: [cyan]{config.provider}:{config.model_name}[/cyan]")
         return True
 
     if cmd == "/workspace":

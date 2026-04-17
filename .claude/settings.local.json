@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "mcp__plugin_everything-claude-code_exa__web_search_exa",
+      "Bash(pip show *)",
+      "Bash(pip index *)",
+      "Bash(python3 *)",
+      "Bash(pip install *)",
+      "mcp__plugin_everything-claude-code_sequential-thinking__sequentialthinking",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git status *)",
+      "Bash(git branch *)",
+      "Bash(git rebase *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
+    ]
+  }
+}
