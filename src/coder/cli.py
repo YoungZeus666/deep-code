@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 from rich.console import Console
 from rich.markdown import Markdown
@@ -13,7 +16,10 @@ from coder.config import AppConfig, load_config
 HELP_TEXT = """\
 **AI Deep Coder** - AI Programming Assistant
 
-**Commands:**
+**Subcommands (run from shell):**
+- `ai-deep-coder init [path]` — Initialize AGENTS.md and .agents/ for a project
+
+**Interactive commands:**
 - `/help`      — Show this help message
 - `/model`     — Show current model
 - `/workspace` — Show current workspace
@@ -120,7 +126,20 @@ def stream_response(agent, messages: list, console: Console) -> list:
 
 
 def main() -> None:
-    """Main entry point for the CLI application."""
+    """Main entry point for the CLI application.
+
+    Subcommands:
+        init [path]  — Generate AGENTS.md and .agents/ for a project.
+        (no args)    — Start the interactive coding assistant.
+    """
+    # Route subcommands before loading the full agent config
+    if len(sys.argv) > 1 and sys.argv[1] == "init":
+        from coder.init import run_init
+
+        target = Path(sys.argv[2]) if len(sys.argv) > 2 else None
+        run_init(target)
+        return
+
     console = Console()
 
     try:
