@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from deepagents import SubAgent, create_deep_agent
@@ -87,11 +88,67 @@ def build_subagents(model: Any) -> list[SubAgent]:
     ]
 
 
+def _load_agents_md(workspace: Path) -> str | None:
+    """Load AGENTS.md from the workspace if it exists."""
+    agents_md = workspace / "AGENTS.md"
+    if agents_md.is_file():
+        try:
+            return agents_md.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return None
+    return None
+
+
+def _load_skills(workspace: Path) -> list[tuple[str, str]]:
+    """Load all skill files from .agents/skills/ directory.
+
+    Returns a list of (skill_name, content) tuples.
+    """
+    skills_dir = workspace / ".agents" / "skills"
+    if not skills_dir.is_dir():
+        return []
+
+    skills: list[tuple[str, str]] = []
+    for path in sorted(skills_dir.iterdir()):
+        if path.is_file() and path.suffix == ".md":
+            try:
+                content = path.read_text(encoding="utf-8", errors="replace")
+                name = path.stem
+                skills.append((name, content))
+            except OSError:
+                continue
+    return skills
+
+
+def _build_system_prompt(workspace: Path) -> str:
+    """Build the full system prompt by combining the base prompt with
+    AGENTS.md project context and .agents/skills/ skill definitions.
+    """
+    parts: list[str] = [ORCHESTRATOR_PROMPT]
+
+    # Load AGENTS.md as project context
+    agents_md = _load_agents_md(workspace)
+    if agents_md:
+        parts.append(
+            "\n\n--- Project Context (from AGENTS.md) ---\n\n"
+            + agents_md
+        )
+
+    # Load skills from .agents/skills/
+    skills = _load_skills(workspace)
+    if skills:
+        parts.append("\n\n--- Available Skills (from .agents/skills/) ---\n")
+        for name, content in skills:
+            parts.append(f"\n### Skill: {name}\n\n{content}")
+
+    return "\n".join(parts)
+
+
 def create_coding_agent(config: AppConfig) -> CompiledStateGraph:
     """Create the main AI Deep Coder orchestrator agent.
 
-    Supports native providers (anthropic, openai) and any OpenAI-compatible
-    provider via the openai-like mode.
+    Automatically loads AGENTS.md and .agents/skills/ from the workspace
+    to enrich the system prompt with project context and custom skills.
     """
     backend = LocalShellBackend(
         root_dir=config.workspace,
@@ -99,10 +156,11 @@ def create_coding_agent(config: AppConfig) -> CompiledStateGraph:
     model = _build_chat_model(config)
     subagents = build_subagents(model)
     custom_tools = get_custom_tools()
+    system_prompt = _build_system_prompt(config.workspace)
 
     return create_deep_agent(
         model=model,
-        system_prompt=ORCHESTRATOR_PROMPT,
+        system_prompt=system_prompt,
         subagents=subagents,
         backend=backend,
         tools=custom_tools if custom_tools else None,

@@ -178,6 +178,20 @@ def main() -> None:
     except Exception as e:
         console.print(f"[red]Failed to create agent: {e}[/red]")
         return
+
+    # Report what was loaded
+    agents_md = config.workspace / "AGENTS.md"
+    skills_dir = config.workspace / ".agents" / "skills"
+    loaded_agents_md = agents_md.is_file()
+    skill_count = 0
+    if skills_dir.is_dir():
+        skill_count = sum(1 for f in skills_dir.iterdir() if f.suffix == ".md")
+
+    if loaded_agents_md:
+        console.print("[green]Loaded AGENTS.md[/green]")
+    if skill_count > 0:
+        console.print(f"[green]Loaded {skill_count} skill(s)[/green]")
+
     console.print("[dim]Agent ready.[/dim]\n")
 
     messages: list = []

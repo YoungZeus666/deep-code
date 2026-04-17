@@ -436,6 +436,7 @@ def _ensure_agents_dir(agents_dir: Path, console: Console) -> None:
         return
 
     agents_dir.mkdir(exist_ok=True)
+    (agents_dir / "skills").mkdir(exist_ok=True)
     (agents_dir / "README.md").write_text(
         "# .agents/\n\n"
         "This directory contains context files for AI agents.\n\n"
@@ -443,10 +444,20 @@ def _ensure_agents_dir(agents_dir: Path, console: Console) -> None:
         "- `style-guide.md` -- Coding style and conventions\n"
         "- `architecture.md` -- System architecture notes\n"
         "- `api-reference.md` -- API documentation\n"
-        "- `todo.md` -- Current tasks and priorities\n",
+        "- `todo.md` -- Current tasks and priorities\n\n"
+        "## skills/\n\n"
+        "Place `.md` files in the `skills/` subdirectory to define custom skills.\n"
+        "Each file is automatically loaded into the agent's system prompt at startup.\n\n"
+        "Example `skills/deploy.md`:\n\n"
+        "```\n"
+        "# Deploy Skill\n\n"
+        "When the user asks to deploy, run `make deploy` in the project root.\n"
+        "Verify the deployment succeeded by checking the output for errors.\n"
+        "```\n",
         encoding="utf-8",
     )
     console.print(f"  [dim]-> {agents_dir}/ (created)[/dim]")
+    console.print(f"  [dim]-> {agents_dir}/skills/ (created)[/dim]")
 
 
 def _has_project_content(root: Path) -> bool:
