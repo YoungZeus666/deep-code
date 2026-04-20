@@ -10,15 +10,15 @@ from deepagents.backends import LocalShellBackend
 from langchain_openai import ChatOpenAI
 from langgraph.graph.state import CompiledStateGraph
 
-from coder.config import AppConfig
-from coder.prompts import (
+from deep_code.config import AppConfig
+from deep_code.prompts import (
     BUG_FIXER_PROMPT,
     CODE_EXPLAINER_PROMPT,
     CODE_GENERATOR_PROMPT,
     CODE_REVIEWER_PROMPT,
     ORCHESTRATOR_PROMPT,
 )
-from coder.tools import get_custom_tools
+from deep_code.tools import get_custom_tools
 
 
 def _build_chat_model(config: AppConfig) -> Any:

@@ -10,8 +10,8 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 
-from coder.agents import create_coding_agent
-from coder.config import AppConfig, load_config
+from deep_code.agents import create_coding_agent
+from deep_code.config import AppConfig, load_config
 
 SKILL_DESC_MAX_LEN = 200
 
@@ -136,7 +136,7 @@ def main() -> None:
     """
     # Route subcommands before loading the full agent config
     if len(sys.argv) > 1 and sys.argv[1] == "init":
-        from coder.init import run_init
+        from deep_code.init import run_init
 
         target = Path(sys.argv[2]) if len(sys.argv) > 2 else None
         run_init(target)

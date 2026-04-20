@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-deep-code = "coder.cli:main"
+deep-code = "deep_code.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/coder"]
+packages = ["src/deep_code"]

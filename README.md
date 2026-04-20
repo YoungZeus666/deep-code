@@ -73,7 +73,7 @@ The **OpenAI-Like** mode works with any OpenAI-compatible endpoint: Qwen, MiniMa
 deep-code
 
 # Or run as a Python module
-python -m coder
+python -m deep_code
 ```
 
 ### CLI Commands
@@ -97,7 +97,7 @@ You > This test is failing with KeyError, can you fix it?
 
 ## Extending
 
-Add custom tools in `src/coder/tools.py`. They are merged with the built-in Deep Agents tools (filesystem, execute, planning, subagents).
+Add custom tools in `src/deep_code/tools.py`. They are merged with the built-in Deep Agents tools (filesystem, execute, planning, subagents).
 
 To change models, set the corresponding env vars in your `.env`:
 
