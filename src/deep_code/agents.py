@@ -141,7 +141,19 @@ def _load_all_skills(workspace: Path) -> list[tuple[str, str]]:
     return skills
 
 
-def _build_system_prompt(workspace: Path) -> str:
+_LANGUAGE_INSTRUCTIONS: dict[str, str] = {
+    "zh": (
+        "\n\n你必须使用中文（简体中文）回复用户。所有解释、总结和对话都应使用中文。"
+        "代码本身保持英文，但代码注释和说明使用中文。"
+    ),
+    "en": (
+        "\n\nYou MUST respond in English. All explanations, summaries, "
+        "and conversation should be in English."
+    ),
+}
+
+
+def _build_system_prompt(workspace: Path, language: str = "zh") -> str:
     """Build the full system prompt by combining the base prompt with
     AGENTS.md project context and skill definitions from skills/ and
     .agents/skills/.
@@ -163,6 +175,9 @@ def _build_system_prompt(workspace: Path) -> str:
         for name, content in skills:
             parts.append(f"\n### Skill: {name}\n\n{content}")
 
+    # Append language instruction to control the agent's output language
+    parts.append(_LANGUAGE_INSTRUCTIONS.get(language, _LANGUAGE_INSTRUCTIONS["zh"]))
+
     return "\n".join(parts)
 
 
@@ -178,7 +193,7 @@ def create_coding_agent(config: AppConfig) -> CompiledStateGraph:
     model = _build_chat_model(config)
     subagents = build_subagents(model)
     custom_tools = get_custom_tools()
-    system_prompt = _build_system_prompt(config.workspace)
+    system_prompt = _build_system_prompt(config.workspace, config.language)
 
     return create_deep_agent(
         model=model,

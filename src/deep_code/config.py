@@ -26,6 +26,7 @@ class AppConfig:
     workspace: Path = field(default_factory=Path.cwd)
     api_key: str | None = None
     base_url: str | None = None
+    language: str = "zh"
 
 
 def _detect_provider() -> tuple[str, str, str | None, str | None]:
@@ -86,10 +87,13 @@ def load_config() -> AppConfig:
     workspace_str = os.environ.get("DEEP_CODE_WORKSPACE")
     workspace = Path(workspace_str) if workspace_str else Path.cwd()
 
+    language = os.environ.get("DEEP_CODE_LANGUAGE", "zh")
+
     return AppConfig(
         provider=provider,
         model_name=model_name,
         workspace=workspace,
         api_key=api_key,
         base_url=base_url,
+        language=language,
     )

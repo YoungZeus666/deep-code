@@ -12,40 +12,22 @@ from rich.panel import Panel
 
 from deep_code.agents import create_coding_agent
 from deep_code.config import AppConfig, load_config
+from deep_code.i18n import SUPPORTED_LANGUAGES, set_language, t
 
 SKILL_DESC_MAX_LEN = 200
-
-HELP_TEXT = """\
-**Deep Code** - AI Programming Assistant
-
-**Subcommands (run from shell):**
-- `deep-code init [path]` — Initialize AGENTS.md and .agents/ for a project
-
-**Interactive commands:**
-- `/help`      — Show this help message
-- `/model`     — Show current model
-- `/workspace` — Show current workspace
-- `/clear`     — Clear conversation history
-- `/quit`      — Exit the application
-
-**Capabilities:**
-- Ask to **generate** code: "Write a Python function that..."
-- Ask to **review** code: "Review the code in src/main.py"
-- Ask to **explain** code: "What does the handle_request function do?"
-- Ask to **fix bugs**: "This test is failing with IndexError..."
-"""
 
 
 def print_welcome(console: Console, config: AppConfig) -> None:
     """Print the welcome banner with model and workspace info."""
     console.print(
         Panel(
-            f"[bold]Deep Code[/bold] v0.1.0\n"
-            f"Provider: [cyan]{config.provider}[/cyan]\n"
-            f"Model: [cyan]{config.model_name}[/cyan]\n"
-            f"Workspace: [cyan]{config.workspace}[/cyan]\n\n"
-            f"[dim]Type /help for commands, /quit to exit.[/dim]",
-            title="Welcome",
+            t(
+                "welcome_body",
+                provider=config.provider,
+                model=config.model_name,
+                workspace=config.workspace,
+            ),
+            title=t("welcome_title"),
             border_style="blue",
         )
     )
@@ -57,25 +39,25 @@ def handle_slash_command(command: str, config: AppConfig, console: Console) -> b
     cmd = command.strip().lower()
 
     if cmd in ("/quit", "/exit"):
-        console.print("[dim]Goodbye![/dim]")
+        console.print(f"[dim]{t('goodbye')}[/dim]")
         raise SystemExit(0)
 
     if cmd == "/help":
-        console.print(Markdown(HELP_TEXT))
+        console.print(Markdown(t("help_text")))
         return True
 
     if cmd == "/model":
-        console.print(f"Current model: [cyan]{config.provider}:{config.model_name}[/cyan]")
+        console.print(t("current_model", model=f"{config.provider}:{config.model_name}"))
         return True
 
     if cmd == "/workspace":
-        console.print(f"Current workspace: [cyan]{config.workspace}[/cyan]")
+        console.print(t("current_workspace", workspace=str(config.workspace)))
         return True
 
     if cmd == "/clear":
         return True  # Caller handles clearing messages
 
-    console.print(f"[yellow]Unknown command: {command}[/yellow]. Type /help for options.")
+    console.print(t("unknown_command", command=command))
     return True
 
 
@@ -118,13 +100,51 @@ def stream_response(agent, messages: list, console: Console) -> list:
                             )
 
     except Exception as e:
-        console.print(f"\n[red]Error during response: {e}[/red]")
+        console.print(t("response_error", error=str(e)))
 
     if accumulated_text:
         console.print()
         messages.append(AIMessage(content=accumulated_text))
 
     return messages
+
+
+def _handle_language_command(
+    user_input: str,
+    config: AppConfig,
+    console: Console,
+) -> tuple[bool, object | None]:
+    """Handle /language command. Returns (handled, new_agent_or_None)."""
+    parts = user_input.strip().split(maxsplit=1)
+
+    if len(parts) == 1:
+        # No argument: show current language
+        lang = config.language
+        name = SUPPORTED_LANGUAGES[lang]
+        console.print(f"[cyan]{t('current_language', lang=lang, name=name)}[/cyan]")
+        return True, None
+
+    lang_code = parts[1].strip().lower()
+    if lang_code not in SUPPORTED_LANGUAGES:
+        supported = ", ".join(f"{k} ({v})" for k, v in SUPPORTED_LANGUAGES.items())
+        console.print(t("unsupported_language", lang=lang_code, supported=supported))
+        return True, None
+
+    # Switch language
+    config.language = lang_code
+    set_language(lang_code)
+    name = SUPPORTED_LANGUAGES[lang_code]
+    console.print(f"[green]{t('language_switched', lang=lang_code, name=name)}[/green]")
+
+    # Recreate agent with updated system prompt
+    console.print(f"[dim]{t('loading_agent')}[/dim]")
+    try:
+        agent = create_coding_agent(config)
+        console.print(f"[dim]{t('agent_ready')}[/dim]")
+        return True, agent
+    except Exception as e:
+        console.print(t("agent_create_failed", error=str(e)))
+        return True, None
 
 
 def main() -> None:
@@ -149,42 +169,41 @@ def main() -> None:
     except SystemExit:
         return
 
+    # Synchronize i18n module with config
+    set_language(config.language)
+
     print_welcome(console, config)
 
     # Let user confirm or change the workspace directory
-    console.print(f"Workspace: [cyan]{config.workspace}[/cyan]")
+    console.print(t("workspace_display", workspace=str(config.workspace)))
     try:
-        answer = console.input(
-            "Use this directory as workspace? ([bold green]Y[/bold green]/n/path): "
-        ).strip()
+        answer = console.input(t("workspace_prompt")).strip()
     except (KeyboardInterrupt, EOFError):
-        console.print("\n[dim]Goodbye![/dim]")
+        console.print(f"\n[dim]{t('goodbye')}[/dim]")
         return
 
     if answer.lower() in ("n", "no"):
-        console.print("[dim]Cancelled.[/dim]")
+        console.print(f"[dim]{t('cancelled')}[/dim]")
         return
     elif answer and answer.lower() not in ("y", "yes", ""):
-        from pathlib import Path
-
         new_path = Path(answer).expanduser().resolve()
         if not new_path.is_dir():
-            console.print(f"[red]Directory does not exist: {new_path}[/red]")
+            console.print(t("dir_not_exist", path=str(new_path)))
             return
         config.workspace = new_path
-        console.print(f"Workspace changed to: [cyan]{config.workspace}[/cyan]")
+        console.print(t("workspace_changed", workspace=str(config.workspace)))
 
-    console.print("[dim]Loading agent...[/dim]")
+    console.print(f"[dim]{t('loading_agent')}[/dim]")
     try:
         agent = create_coding_agent(config)
     except Exception as e:
-        console.print(f"[red]Failed to create agent: {e}[/red]")
+        console.print(t("agent_create_failed", error=str(e)))
         return
 
     # Report what was loaded
     agents_md = config.workspace / "AGENTS.md"
     if agents_md.is_file():
-        console.print("[green]Loaded AGENTS.md[/green]")
+        console.print(t("loaded_agents_md"))
 
     skill_info: list[tuple[str, str]] = []  # (name, description)
     for sdir in (config.workspace / "skills", config.workspace / ".agents" / "skills"):
@@ -211,32 +230,44 @@ def main() -> None:
                     first_line = first_line[:SKILL_DESC_MAX_LEN - 3] + "..."
                 skill_info.append((entry.name, first_line))
 
-    console.print(f"[green]Loaded {len(skill_info)} skill(s)[/green]")
+    console.print(t("loaded_skills", count=len(skill_info)))
     for name, desc in skill_info:
         if desc:
             console.print(f"  [dim]- {name}: {desc}[/dim]")
         else:
             console.print(f"  [dim]- {name}[/dim]")
 
-    console.print("[dim]Agent ready.[/dim]\n")
+    console.print(f"[dim]{t('agent_ready')}[/dim]\n")
 
     messages: list = []
 
     while True:
         try:
-            user_input = console.input("[bold green]You > [/bold green]")
+            user_input = console.input(f"[bold green]{t('input_prompt')}[/bold green]")
         except (KeyboardInterrupt, EOFError):
-            console.print("\n[dim]Goodbye![/dim]")
+            console.print(f"\n[dim]{t('goodbye')}[/dim]")
             break
 
         if not user_input.strip():
             continue
 
         if user_input.strip().startswith("/"):
-            if user_input.strip().lower() == "/clear":
+            cmd_lower = user_input.strip().lower()
+
+            if cmd_lower == "/clear":
                 messages.clear()
-                console.print("[dim]Conversation cleared.[/dim]")
+                console.print(f"[dim]{t('conversation_cleared')}[/dim]")
                 continue
+
+            if cmd_lower.startswith("/language"):
+                handled, new_agent = _handle_language_command(
+                    user_input.strip(), config, console
+                )
+                if new_agent is not None:
+                    agent = new_agent
+                if handled:
+                    continue
+
             if handle_slash_command(user_input.strip(), config, console):
                 continue
 
