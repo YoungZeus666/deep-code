@@ -1,3 +1,3 @@
-"""AI Deep Coder - An AI programming assistant built on LangChain Deep Agents."""
+"""Deep Code - An AI programming assistant built on LangChain Deep Agents."""
 
 __version__ = "0.1.0"

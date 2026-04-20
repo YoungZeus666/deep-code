@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ai-deep-coder"
+name = "deep-code"
 version = "0.1.0"
 description = "AI programming assistant built on LangChain Deep Agents"
 requires-python = ">=3.11"
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ai-deep-coder = "coder.cli:main"
+deep-code = "coder.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/coder"]

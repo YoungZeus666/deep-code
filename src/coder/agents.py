@@ -167,7 +167,7 @@ def _build_system_prompt(workspace: Path) -> str:
 
 
 def create_coding_agent(config: AppConfig) -> CompiledStateGraph:
-    """Create the main AI Deep Coder orchestrator agent.
+    """Create the main Deep Code orchestrator agent.
 
     Automatically loads AGENTS.md and .agents/skills/ from the workspace
     to enrich the system prompt with project context and custom skills.
@@ -186,5 +186,5 @@ def create_coding_agent(config: AppConfig) -> CompiledStateGraph:
         subagents=subagents,
         backend=backend,
         tools=custom_tools if custom_tools else None,
-        name="ai-deep-coder",
+        name="deep-code",
     )

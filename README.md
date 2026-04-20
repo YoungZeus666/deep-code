@@ -1,4 +1,4 @@
-# AI Deep Coder
+# Deep Code
 
 AI programming assistant built on the [LangChain Deep Agents](https://github.com/langchain-ai/deepagents) framework.
 
@@ -30,8 +30,8 @@ The orchestrator delegates tasks to specialized subagents:
 ## Installation
 
 ```bash
-git clone https://github.com/Yangzhi1201/ai-deep-coder.git
-cd ai-deep-coder
+git clone https://github.com/Yangzhi1201/deep-code.git
+cd deep-code
 pip install -e .
 ```
 
@@ -64,13 +64,13 @@ The **OpenAI-Like** mode works with any OpenAI-compatible endpoint: Qwen, MiniMa
 | `OPENAI_LIKE_API_KEY` | - | API key for OpenAI-Like endpoint |
 | `OPENAI_LIKE_BASE_URL` | - | Base URL for OpenAI-Like endpoint |
 | `OPENAI_LIKE_MODEL` | - | Model name for OpenAI-Like endpoint |
-| `AI_DEEP_CODER_WORKSPACE` | Current directory | Working directory for file operations |
+| `DEEP_CODE_WORKSPACE` | Current directory | Working directory for file operations |
 
 ## Usage
 
 ```bash
 # Run with the CLI entry point
-ai-deep-coder
+deep-code
 
 # Or run as a Python module
 python -m coder

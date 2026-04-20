@@ -1,4 +1,4 @@
-"""Configuration loading for AI Deep Coder."""
+"""Configuration loading for Deep Code."""
 
 from __future__ import annotations
 
@@ -83,7 +83,7 @@ def load_config() -> AppConfig:
 
     provider, model_name, api_key, base_url = _detect_provider()
 
-    workspace_str = os.environ.get("AI_DEEP_CODER_WORKSPACE")
+    workspace_str = os.environ.get("DEEP_CODE_WORKSPACE")
     workspace = Path(workspace_str) if workspace_str else Path.cwd()
 
     return AppConfig(

@@ -1,7 +1,7 @@
 """System prompts for the orchestrator and all subagents."""
 
 ORCHESTRATOR_PROMPT = """\
-You are AI Deep Coder, an intelligent programming assistant.
+You are Deep Code, an intelligent programming assistant.
 
 You have four specialized subagents available via the `task` tool. \
 Delegate to the appropriate subagent based on the user's request:

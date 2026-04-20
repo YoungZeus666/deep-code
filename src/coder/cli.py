@@ -1,4 +1,4 @@
-"""Interactive CLI for AI Deep Coder."""
+"""Interactive CLI for Deep Code."""
 
 from __future__ import annotations
 
@@ -16,10 +16,10 @@ from coder.config import AppConfig, load_config
 SKILL_DESC_MAX_LEN = 200
 
 HELP_TEXT = """\
-**AI Deep Coder** - AI Programming Assistant
+**Deep Code** - AI Programming Assistant
 
 **Subcommands (run from shell):**
-- `ai-deep-coder init [path]` — Initialize AGENTS.md and .agents/ for a project
+- `deep-code init [path]` — Initialize AGENTS.md and .agents/ for a project
 
 **Interactive commands:**
 - `/help`      — Show this help message
@@ -40,7 +40,7 @@ def print_welcome(console: Console, config: AppConfig) -> None:
     """Print the welcome banner with model and workspace info."""
     console.print(
         Panel(
-            f"[bold]AI Deep Coder[/bold] v0.1.0\n"
+            f"[bold]Deep Code[/bold] v0.1.0\n"
             f"Provider: [cyan]{config.provider}[/cyan]\n"
             f"Model: [cyan]{config.model_name}[/cyan]\n"
             f"Workspace: [cyan]{config.workspace}[/cyan]\n\n"
