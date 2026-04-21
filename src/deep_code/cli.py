@@ -6,6 +6,9 @@ import sys
 from pathlib import Path
 
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
+from prompt_toolkit.shortcuts import prompt as Prompt
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.styles import Style
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -15,6 +18,22 @@ from deep_code.config import AppConfig, load_config
 from deep_code.i18n import SUPPORTED_LANGUAGES, set_language, t
 
 SKILL_DESC_MAX_LEN = 200
+
+SLASH_COMMANDS = ["/help", "/model", "/workspace", "/language", "/clear", "/init", "/quit"]
+
+_input_style = Style.from_dict({"prompt": "bold green"})
+_slash_completer = WordCompleter(SLASH_COMMANDS)
+
+_combined_style = Style.from_dict({
+    "prompt": "bold #00d4aa",
+    "completion-menu.completion": "bg:#1a1a2e #cdd6f4",
+    "completion-menu.completion.current": "bg:#585b70 #cdd6f4",
+    "completion-menu.meta": "bg:#313244 #a6adc8",
+    "completion-menu.meta.current": "bg:#45475a #cdd6f4",
+    "completion-menu.border": "bg:#1a1a2e",
+    "scrollbar.background": "bg:#313244",
+    "scrollbar.button": "bg:#45475a",
+})
 
 
 def print_welcome(console: Console, config: AppConfig) -> None:
@@ -248,7 +267,7 @@ def main() -> None:
     while True:
         console.print("[dim]─" * console.width)
         try:
-            user_input = console.input(f"[bold green]{t('input_prompt')}[/bold green]")
+            user_input = Prompt("> ", completer=_slash_completer, style=_combined_style)
         except (KeyboardInterrupt, EOFError):
             console.print(f"\n[dim]{t('goodbye')}[/dim]")
             break

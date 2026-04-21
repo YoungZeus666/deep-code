@@ -21,7 +21,9 @@
       "Bash(grep -E \"\\\\.\\(py|toml|txt|md\\)$\")",
       "Bash(python *)",
       "Bash(wc *)",
-      "Bash(PYTHONPATH=src python -c \"from deep_code.init import run_init; print\\('import OK'\\)\")"
+      "Bash(PYTHONPATH=src python -c \"from deep_code.init import run_init; print\\('import OK'\\)\")",
+      "mcp__plugin_everything-claude-code_context7__resolve-library-id",
+      "mcp__plugin_everything-claude-code_context7__query-docs"
     ]
   }
 }
