@@ -322,8 +322,16 @@ def generate_empty_agents_md() -> str:
 # Init command entry point
 # ---------------------------------------------------------------------------
 
-def run_init(target_dir: Path | None = None) -> None:
-    """Run the init command: generate AGENTS.md and .agents/ directory."""
+def run_init(target_dir: Path | None = None, interactive: bool = True) -> bool:
+    """Run the init command: generate AGENTS.md and .agents/ directory.
+
+    Args:
+        target_dir: Directory to initialize. Defaults to cwd.
+        interactive: If True, show detected info and let user customize.
+                     If False, auto-detect and generate without prompts.
+    Returns:
+        True if AGENTS.md was generated/updated, False if skipped.
+    """
     console = Console()
     root = (target_dir or Path.cwd()).resolve()
 
@@ -336,15 +344,18 @@ def run_init(target_dir: Path | None = None) -> None:
     agents_md_path = root / "AGENTS.md"
     agents_dir = root / ".agents"
 
-    # Ask before overwriting
+    # Ask before overwriting (only in interactive mode)
     if agents_md_path.exists():
-        if not Confirm.ask(
-            "[cyan]AGENTS.md already exists.[/cyan] Overwrite?",
-            default=False,
-        ):
-            console.print("[dim]Skipped AGENTS.md (kept existing).[/dim]")
-            _ensure_agents_dir(agents_dir, console)
-            return
+        if interactive:
+            if not Confirm.ask(
+                "[cyan]AGENTS.md already exists.[/cyan] Overwrite?",
+                default=False,
+            ):
+                console.print("[dim]Skipped AGENTS.md (kept existing).[/dim]")
+                _ensure_agents_dir(agents_dir, console)
+                return False
+        else:
+            console.print("[dim]AGENTS.md exists, regenerating...[/dim]")
 
     has_content = _has_project_content(root)
 
@@ -353,12 +364,21 @@ def run_init(target_dir: Path | None = None) -> None:
     info = _collect_project_info(root)
 
     if not has_content:
-        # Empty project: fill in with defaults then let user modify
         info["languages"] = []
         info["frameworks"] = []
         info["dev_commands"] = []
 
-    # Show detected info
+    # Auto mode: skip customization
+    if not interactive:
+        content = generate_agents_md(info)
+        console.print("[green]Generated AGENTS.md.[/green]")
+        agents_md_path.write_text(content, encoding="utf-8")
+        console.print(f"  [dim]-> {agents_md_path}[/dim]")
+        _ensure_agents_dir(agents_dir, console)
+        console.print("[bold green]Done![/bold green] Your project is ready for AI agents.")
+        return True
+
+    # Interactive mode: show detected info and let user customize
     console.print()
     console.print("[bold]Detected project info:[/bold]")
     if info.get("languages"):
@@ -376,13 +396,10 @@ def run_init(target_dir: Path | None = None) -> None:
         for label, cmd in info["dev_commands"]:
             console.print(f"    - {label}: {cmd}")
 
-    # Ask if user wants to customize
     console.print()
     if not Confirm.ask("[cyan]Modify detected info?[/cyan]", default=False):
-        # Accept detected info as-is
         console.print("[dim]Using detected info as-is.[/dim]")
     else:
-        # Interactive customization
         console.print()
 
         # Languages
@@ -430,6 +447,7 @@ def run_init(target_dir: Path | None = None) -> None:
     console.print()
     console.print("[bold green]Done![/bold green] Your project is ready for AI agents.")
     console.print("[dim]Edit AGENTS.md to add custom instructions for your project.[/dim]")
+    return True
 
 
 def _ensure_agents_dir(agents_dir: Path, console: Console) -> None:

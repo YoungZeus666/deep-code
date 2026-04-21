@@ -60,6 +60,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "current_language": "当前语言: {lang} ({name})",
         "language_switched": "语言已切换至: {lang} ({name})",
         "unsupported_language": "[yellow]不支持的语言: {lang}。支持: {supported}[/yellow]",
+        "init_reminder": "输入 /init 初始化项目，生成 AGENTS.md 和 .agents/ 目录",
     },
     "en": {
         "help_text": """\
@@ -111,6 +112,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "current_language": "Current language: {lang} ({name})",
         "language_switched": "Language switched to: {lang} ({name})",
         "unsupported_language": "[yellow]Unsupported language: {lang}. Supported: {supported}[/yellow]",
+        "init_reminder": "Type /init to initialize the project, generating AGENTS.md and .agents/",
     },
 }
 

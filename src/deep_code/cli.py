@@ -193,6 +193,10 @@ def main() -> None:
         config.workspace = new_path
         console.print(t("workspace_changed", workspace=str(config.workspace)))
 
+    # Remind user to init if AGENTS.md is missing
+    if not (config.workspace / "AGENTS.md").is_file():
+        console.print(f"[yellow]{t('init_reminder')}[/yellow]")
+
     console.print(f"[dim]{t('loading_agent')}[/dim]")
     try:
         agent = create_coding_agent(config)
@@ -270,7 +274,7 @@ def main() -> None:
 
             if cmd_lower == "/init":
                 from deep_code.init import run_init
-                run_init(config.workspace)
+                run_init(config.workspace, interactive=False)
                 continue
 
             if handle_slash_command(user_input.strip(), config, console):
