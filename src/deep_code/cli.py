@@ -17,11 +17,10 @@ from deep_code.agents import create_coding_agent
 from deep_code.config import AppConfig, load_config, get_trusted_workspaces, add_trusted_workspace
 from deep_code.i18n import SUPPORTED_LANGUAGES, set_language, t
 from deep_code.session import list_sessions, load_session, save_session
-from deep_code.plan_mode import run_plan_mode
 
 SKILL_DESC_MAX_LEN = 200
 
-SLASH_COMMANDS = ["/help", "/model", "/workspace", "/language", "/clear", "/init", "/plan", "/quit"]
+SLASH_COMMANDS = ["/help", "/model", "/workspace", "/language", "/clear", "/init", "/mode", "/quit"]
 
 _input_style = Style.from_dict({"prompt": "bold green"})
 _slash_completer = WordCompleter(SLASH_COMMANDS)
@@ -131,6 +130,52 @@ def handle_slash_command(command: str, config: AppConfig, console: Console) -> b
 
     console.print(t("unknown_command", command=command))
     return True
+
+
+def _handle_mode_command(
+    user_input: str,
+    config: AppConfig,
+    console: Console,
+    agent_ref: list | None,
+    current_mode_ref: list | None,
+) -> tuple[bool, object | None, str | None]:
+    """Handle /mode command. Returns (handled, new_agent_or_None, new_mode_or_None).
+
+    agent_ref: list containing the current agent (mutated in place).
+    current_mode_ref: list containing the current mode string (mutated in place).
+    """
+    parts = user_input.strip().split(maxsplit=1)
+
+    if len(parts) == 1:
+        # No argument: show current mode
+        mode = current_mode_ref[0] if current_mode_ref else "agent"
+        console.print(t("mode_current", mode=mode))
+        console.print(f"[dim]{t('mode_available_modes')}[/dim]")
+        return True, None, None
+
+    arg = parts[1].strip().lower()
+    if arg not in ("agent", "plan"):
+        console.print(t("mode_invalid_arg", arg=arg))
+        console.print(f"[dim]{t('mode_available_modes')}[/dim]")
+        return True, None, None
+
+    new_mode = arg
+    if current_mode_ref is not None:
+        current_mode_ref[0] = new_mode
+
+    console.print(t("mode_switched", mode=new_mode))
+
+    if new_mode == "plan":
+        # Switch to plan mode - pass current agent for Step 3 execution
+        from deep_code.plan_mode import run_plan_mode
+        current_agent = agent_ref[0] if agent_ref else None
+        run_plan_mode(config, console, agent=current_agent)
+        # After plan mode exits, switch back to agent mode
+        if current_mode_ref is not None:
+            current_mode_ref[0] = "agent"
+        console.print(t("mode_switched", mode="agent"))
+
+    return True, None, None
 
 
 def stream_response(agent, messages: list, console: Console) -> list:
@@ -349,16 +394,12 @@ def main() -> None:
                     run_init(config.workspace, interactive=False)
                     continue
 
-                if cmd_lower == "/plan":
-                    console.print(t("plan_mode_hint"))
-                    try:
-                        question = console.input(t("plan_ask_question")).strip()
-                    except (KeyboardInterrupt, EOFError):
-                        console.print(f"\n[dim]{t('goodbye')}[/dim]")
-                        break
-                    if question:
-                        run_plan_mode(question, config, console)
-                    continue
+                if cmd_lower.startswith("/mode"):
+                    handled, new_agent, new_mode = _handle_mode_command(
+                        user_input.strip(), config, console, [agent], None
+                    )
+                    if handled:
+                        continue
 
                 if handle_slash_command(user_input.strip(), config, console):
                     continue

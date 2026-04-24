@@ -24,6 +24,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 - `/language`  — 切换语言 (zh/en)
 - `/clear`     — 清除对话历史
 - `/init`      — 初始化项目 (生成 AGENTS.md)
+- `/mode`      — 切换模式 (agent/plan)
 - `/quit`      — 退出应用
 
 **功能:**
@@ -31,6 +32,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 - **审查**代码: "审查 src/main.py 的代码"
 - **解释**代码: "handle_request 函数是做什么的？"
 - **修复**缺陷: "这个测试报了 IndexError..."
+- **计划模式**: 输入 /mode plan 进入三步式编码
 """,
         "welcome_title": "欢迎",
         "welcome_body": (
@@ -78,13 +80,22 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "plan_mode_title": "📋 计划模式",
         "plan_mode_desc": "三步式编码：优化问题 → 确认方案 → 执行",
         "plan_step1_prompt": "\n[bold cyan]步骤 1/3: 优化问题[/bold cyan]\n",
+        "plan_step1_streaming": "正在优化问题...",
         "plan_step2_prompt": "\n[bold cyan]步骤 2/3: 确认方案[/bold cyan]\n",
+        "plan_step2_streaming": "正在生成方案...",
         "plan_step3_exec": "\n[bold cyan]步骤 3/3: 执行方案[/bold cyan]\n开始执行...\n",
+        "plan_step3_exec_no_agent": "\n[bold cyan]步骤 3/3: 执行方案[/bold cyan]\n（无 agent，回退到文本模式）\n",
         "plan_confirm": "\n输入 [bold green]y/yes[/bold green] 确认，或输入修改意见：",
         "plan_cancel": "[yellow]已取消计划模式[/yellow]",
-        "plan_restart": "[cyan]输入 /plan 重新开始[/cyan]",
+        "plan_restart": "[cyan]输入 /mode plan 重新开始[/cyan]",
         "plan_success": "[green]✅ 计划执行完成！[/green]",
-        "plan_mode_hint": "提示：使用 /plan 进入计划模式，可视化每个编码步骤",
+        "plan_regenerating": "正在重新生成...",
+        "plan_max_retries": "[yellow]已达最大重试次数，按 Enter 取消[/yellow]",
+        "plan_mode_hint": "提示：使用 /mode plan 进入计划模式，可视化每个编码步骤",
+        "mode_current": "当前模式: [cyan]{mode}[/cyan]",
+        "mode_switched": "[green]已切换至 {mode} 模式[/green]",
+        "mode_invalid_arg": "[yellow]无效参数: {arg}。可用: agent, plan[/yellow]",
+        "mode_available_modes": "可用模式: [cyan]agent[/cyan] (默认), [cyan]plan[/cyan]",
         "plan_ask_question": "请描述你想要完成的任务或问题：",
     },
     "en": {
@@ -101,7 +112,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 - `/language`  — Switch language (zh/en)
 - `/clear`     — Clear conversation history
 - `/init`      — Initialize project (generate AGENTS.md)
-- `/plan`      — Enter plan mode (3-step coding)
+- `/mode`      — Switch mode (agent/plan)
 - `/quit`      — Exit the application
 
 **Capabilities:**
@@ -109,7 +120,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 - Ask to **review** code: "Review the code in src/main.py"
 - Ask to **explain** code: "What does the handle_request function do?"
 - Ask to **fix bugs**: "This test is failing with IndexError..."
-- Use **plan mode**: Type /plan for step-by-step coding
+- Use **plan mode**: Type /mode plan for step-by-step coding
 """,
         "welcome_title": "Welcome",
         "welcome_body": (
@@ -156,13 +167,22 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "plan_mode_title": "📋 Plan Mode",
         "plan_mode_desc": "3-step coding: Optimize question → Confirm plan → Execute",
         "plan_step1_prompt": "\n[bold cyan]Step 1/3: Optimize Question[/bold cyan]\n",
+        "plan_step1_streaming": "Optimizing...",
         "plan_step2_prompt": "\n[bold cyan]Step 2/3: Confirm Plan[/bold cyan]\n",
+        "plan_step2_streaming": "Generating plan...",
         "plan_step3_exec": "\n[bold cyan]Step 3/3: Execute Plan[/bold cyan]\nStarting execution...\n",
+        "plan_step3_exec_no_agent": "\n[bold cyan]Step 3/3: Execute Plan[/bold cyan]\n(No agent, text-only fallback)\n",
         "plan_confirm": "\nEnter [bold green]y/yes[/bold green] to confirm, or enter your feedback:",
         "plan_cancel": "[yellow]Plan mode cancelled[/yellow]",
-        "plan_restart": "[cyan]Type /plan to restart[/cyan]",
+        "plan_restart": "[cyan]Type /mode plan to restart[/cyan]",
         "plan_success": "[green]✅ Plan execution completed![/green]",
-        "plan_mode_hint": "Tip: Use /plan to enter plan mode for visual step-by-step coding",
+        "plan_regenerating": "Regenerating...",
+        "plan_max_retries": "[yellow]Max retries reached, press Enter to cancel[/yellow]",
+        "plan_mode_hint": "Tip: Use /mode plan to enter plan mode for visual step-by-step coding",
+        "mode_current": "Current mode: [cyan]{mode}[/cyan]",
+        "mode_switched": "[green]Switched to {mode} mode[/green]",
+        "mode_invalid_arg": "[yellow]Invalid argument: {arg}. Available: agent, plan[/yellow]",
+        "mode_available_modes": "Available modes: [cyan]agent[/cyan] (default), [cyan]plan[/cyan]",
         "plan_ask_question": "Describe the task or problem you want to accomplish:",
     },
 }
