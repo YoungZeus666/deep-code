@@ -13,15 +13,31 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 
+from deep_code.agent_commands import (
+    AgentCommandError,
+    build_agent_routing_message,
+    parse_agent_command,
+)
 from deep_code.agents import create_coding_agent
 from deep_code.config import AppConfig, load_config, get_trusted_workspaces, add_trusted_workspace
 from deep_code.i18n import SUPPORTED_LANGUAGES, set_language, t
 from deep_code.session import list_sessions, load_session, save_session
 from deep_code.plan_mode import run_plan_mode
+from deep_code.subagents import get_subagent_names
 
 SKILL_DESC_MAX_LEN = 200
 
-SLASH_COMMANDS = ["/help", "/model", "/workspace", "/language", "/clear", "/init", "/plan", "/quit"]
+SLASH_COMMANDS = [
+    "/help",
+    "/agent",
+    "/model",
+    "/workspace",
+    "/language",
+    "/clear",
+    "/init",
+    "/plan",
+    "/quit",
+]
 
 _input_style = Style.from_dict({"prompt": "bold green"})
 _slash_completer = WordCompleter(SLASH_COMMANDS)
@@ -329,6 +345,33 @@ def main() -> None:
 
             if user_input.strip().startswith("/"):
                 cmd_lower = user_input.strip().lower()
+                available_agents = get_subagent_names()
+
+                if cmd_lower.startswith("/agent"):
+                    try:
+                        parsed = parse_agent_command(user_input.strip(), available_agents)
+                    except AgentCommandError as error:
+                        agents_text = ", ".join(available_agents)
+                        if error.code == "missing_agent":
+                            console.print(t("agent_usage", agents=agents_text))
+                        elif error.code == "missing_task":
+                            console.print(
+                                t("agent_missing_task", agent=error.detail or "")
+                            )
+                            console.print(t("agent_available_list", agents=agents_text))
+                        elif error.code == "unknown_agent":
+                            console.print(
+                                t("agent_unknown", agent=error.detail or "")
+                            )
+                            console.print(t("agent_available_list", agents=agents_text))
+                        else:
+                            console.print(t("agent_usage", agents=agents_text))
+                        continue
+
+                    user_input = build_agent_routing_message(
+                        parsed.agent_name,
+                        parsed.task,
+                    )
 
                 if cmd_lower == "/clear":
                     messages.clear()
