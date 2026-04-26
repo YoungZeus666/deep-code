@@ -10,6 +10,7 @@ from deepagents.backends import LocalShellBackend
 from langchain_openai import ChatOpenAI
 from langgraph.graph.state import CompiledStateGraph
 
+from deep_code.collaboration import render_collaboration_playbook
 from deep_code.config import AppConfig
 from deep_code.prompts import (
     ORCHESTRATOR_PROMPT,
@@ -116,7 +117,11 @@ def _build_system_prompt(workspace: Path, language: str = "zh") -> str:
     AGENTS.md project context and skill definitions from skills/ and
     .agents/skills/.
     """
-    parts: list[str] = [ORCHESTRATOR_PROMPT, render_subagent_catalog()]
+    parts: list[str] = [
+        ORCHESTRATOR_PROMPT,
+        render_subagent_catalog(),
+        render_collaboration_playbook(),
+    ]
 
     # Load AGENTS.md as project context
     agents_md = _load_agents_md(workspace)

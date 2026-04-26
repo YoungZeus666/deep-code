@@ -15,12 +15,14 @@ Deep Code
 ├── Orchestrator Agent
 │   ├── Intelligent task routing — delegates to subagents or handles directly
 │   ├── Dynamic system prompt = base prompt + subagent catalog + AGENTS.md + skills + language instruction
-│   └── 5 Built-in Subagents (via registry)
+│   ├── Automatic multi-agent collaboration for parallel work and delivery pipelines
+│   └── 6 Built-in Subagents (via registry)
 │       ├── code-generator  — write new code (functions, classes, modules, files)
 │       ├── code-reviewer   — review for bugs, style, performance, security
 │       ├── code-explainer  — explain how code works step by step
 │       ├── bug-fixer       — reproduce → diagnose → fix → verify cycle
-│       └── test-writer     — add or extend automated tests for existing code
+│       ├── test-writer     — add or extend automated tests for existing code
+│       └── git-committer   — create verified task-related git commits
 │
 ├── Multi-Provider Support
 │   ├── Anthropic (native, default)
@@ -67,15 +69,22 @@ CLI (Rich terminal UI, streaming)
 Orchestrator Agent
   │  system_prompt = ORCHESTRATOR_PROMPT + subagent catalog + AGENTS.md + skills + language
   │  delegates via `task` tool
+  │  can launch parallel subagents and coordinate
+  │  generate -> review -> fix -> test -> commit
   │
   ├─► code-generator   — writes new code
   ├─► code-reviewer    — reviews code quality
   ├─► code-explainer   — explains code logic
   ├─► bug-fixer        — diagnoses and fixes bugs
-  └─► test-writer      — writes and updates tests
+  ├─► test-writer      — writes and updates tests
+  └─► git-committer    — commits verified task-related changes
 
 All agents share: LocalShellBackend (filesystem + shell within workspace)
 ```
+
+Automatic collaboration is triggered from normal conversation flow when a task
+naturally decomposes into independent work or a delivery pipeline. Agent-to-agent
+handoffs are mediated by the orchestrator using structured stage summaries.
 
 ## Prerequisites
 

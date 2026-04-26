@@ -7,11 +7,13 @@ from typing import Any
 
 from deepagents import SubAgent
 
+from deep_code.collaboration import CommitReport, FixReport, ReviewReport, TestReport
 from deep_code.prompts import (
     BUG_FIXER_PROMPT,
     CODE_EXPLAINER_PROMPT,
     CODE_GENERATOR_PROMPT,
     CODE_REVIEWER_PROMPT,
+    GIT_COMMITTER_PROMPT,
     TEST_WRITER_PROMPT,
 )
 
@@ -25,6 +27,7 @@ class SubAgentSpec:
     routing_hint: str
     system_prompt: str
     aliases: tuple[str, ...] = field(default_factory=tuple)
+    response_format: Any | None = None
 
     def matches(self, candidate: str) -> bool:
         """Return True when candidate refers to this subagent."""
@@ -52,6 +55,7 @@ _SUBAGENT_SPECS: tuple[SubAgentSpec, ...] = (
         routing_hint="Review existing code for bugs, security, style, or performance.",
         system_prompt=CODE_REVIEWER_PROMPT,
         aliases=("reviewer",),
+        response_format=ReviewReport,
     ),
     SubAgentSpec(
         name="code-explainer",
@@ -72,6 +76,7 @@ _SUBAGENT_SPECS: tuple[SubAgentSpec, ...] = (
         routing_hint="Diagnose and fix failing behavior, errors, or test failures.",
         system_prompt=BUG_FIXER_PROMPT,
         aliases=("fixer",),
+        response_format=FixReport,
     ),
     SubAgentSpec(
         name="test-writer",
@@ -82,6 +87,18 @@ _SUBAGENT_SPECS: tuple[SubAgentSpec, ...] = (
         routing_hint="Write or extend automated tests for existing code.",
         system_prompt=TEST_WRITER_PROMPT,
         aliases=("tester", "testwriter"),
+        response_format=TestReport,
+    ),
+    SubAgentSpec(
+        name="git-committer",
+        description=(
+            "Creates a git commit for verified task-related changes. "
+            "Use after implementation and verification succeed."
+        ),
+        routing_hint="Create a git commit only after verification passes.",
+        system_prompt=GIT_COMMITTER_PROMPT,
+        aliases=("committer", "git-commit"),
+        response_format=CommitReport,
     ),
 )
 
@@ -112,6 +129,7 @@ def build_subagents(model: Any) -> list[SubAgent]:
             description=spec.description,
             system_prompt=spec.system_prompt,
             model=model,
+            response_format=spec.response_format,
         )
         for spec in _SUBAGENT_SPECS
     ]
