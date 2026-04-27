@@ -147,3 +147,4 @@ CLAUDE.md
 __pycache__/
 .trae/
 docs/
+.venv/

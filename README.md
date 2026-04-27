@@ -10,16 +10,19 @@ Deep Code
 │   ├── Streaming response with real-time token output
 │   ├── Tool call visualization
 │   ├── Conversation history management
-│   └── Slash commands (/help, /model, /workspace, /language, /clear, /quit)
+│   └── Slash commands (/help, /agent, /model, /workspace, /language, /clear, /plan, /quit)
 │
 ├── Orchestrator Agent
 │   ├── Intelligent task routing — delegates to subagents or handles directly
-│   ├── Dynamic system prompt = base prompt + AGENTS.md + skills + language instruction
-│   └── 4 Specialized Subagents
+│   ├── Dynamic system prompt = base prompt + subagent catalog + AGENTS.md + skills + language instruction
+│   ├── Automatic multi-agent collaboration for parallel work and delivery pipelines
+│   └── 6 Built-in Subagents (via registry)
 │       ├── code-generator  — write new code (functions, classes, modules, files)
 │       ├── code-reviewer   — review for bugs, style, performance, security
 │       ├── code-explainer  — explain how code works step by step
-│       └── bug-fixer       — reproduce → diagnose → fix → verify cycle
+│       ├── bug-fixer       — reproduce → diagnose → fix → verify cycle
+│       ├── test-writer     — add or extend automated tests for existing code
+│       └── git-committer   — create verified task-related git commits
 │
 ├── Multi-Provider Support
 │   ├── Anthropic (native, default)
@@ -64,16 +67,24 @@ CLI (Rich terminal UI, streaming)
   │
   ▼
 Orchestrator Agent
-  │  system_prompt = ORCHESTRATOR_PROMPT + AGENTS.md + skills + language
+  │  system_prompt = ORCHESTRATOR_PROMPT + subagent catalog + AGENTS.md + skills + language
   │  delegates via `task` tool
+  │  can launch parallel subagents and coordinate
+  │  generate -> review -> fix -> test -> commit
   │
   ├─► code-generator   — writes new code
   ├─► code-reviewer    — reviews code quality
   ├─► code-explainer   — explains code logic
-  └─► bug-fixer        — diagnoses and fixes bugs
+  ├─► bug-fixer        — diagnoses and fixes bugs
+  ├─► test-writer      — writes and updates tests
+  └─► git-committer    — commits verified task-related changes
 
 All agents share: LocalShellBackend (filesystem + shell within workspace)
 ```
+
+Automatic collaboration is triggered from normal conversation flow when a task
+naturally decomposes into independent work or a delivery pipeline. Agent-to-agent
+handoffs are mediated by the orchestrator using structured stage summaries.
 
 ## Prerequisites
 
@@ -139,6 +150,7 @@ deep-code init /path/to/project
 | Command | Description |
 |---|---|
 | `/help` | Show help message |
+| `/agent` | Route a task to a specific built-in subagent |
 | `/model` | Show current provider and model |
 | `/workspace` | Show current workspace path |
 | `/language` | Show current language |
@@ -154,6 +166,7 @@ You > Write a Python function that implements binary search
 You > Review the code in src/main.py
 You > Explain how the authentication middleware works
 You > This test is failing with KeyError, can you fix it?
+You > /agent test-writer add tests for src/deep_code/cli.py
 ```
 
 ## Project Initialization
@@ -196,10 +209,12 @@ src/deep_code/
 ├── __init__.py       # Package version
 ├── __main__.py       # python -m deep_code entry point
 ├── cli.py            # Interactive REPL, streaming, slash commands
-├── agents.py         # Orchestrator + subagent factory, system prompt assembly
+├── agent_commands.py # `/agent` parser and explicit routing helpers
+├── agents.py         # Orchestrator factory, system prompt assembly
 ├── config.py         # AppConfig, provider auto-detection from env vars
 ├── init.py           # deep-code init — project scanner, AGENTS.md generator
-├── prompts.py        # System prompts for orchestrator and 4 subagents
+├── prompts.py        # System prompts for orchestrator and built-in subagents
+├── subagents.py      # Built-in subagent registry and catalog rendering
 ├── i18n.py           # Translation dictionaries (zh/en), language switching
 └── tools.py          # Custom tool extension point
 ```
@@ -207,6 +222,8 @@ src/deep_code/
 ## Extending
 
 Add custom tools in `src/deep_code/tools.py`. They are merged with the built-in Deep Agents tools (filesystem, execute, planning, subagents).
+
+Built-in subagents are now defined through a small registry in `src/deep_code/subagents.py`. To add another one, register its metadata there and add the corresponding prompt constant in `src/deep_code/prompts.py`.
 
 To change models, set the corresponding env vars in your `.env`:
 

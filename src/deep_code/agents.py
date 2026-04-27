@@ -10,13 +10,14 @@ from deepagents.backends import LocalShellBackend
 from langchain_openai import ChatOpenAI
 from langgraph.graph.state import CompiledStateGraph
 
+from deep_code.collaboration import render_collaboration_playbook
 from deep_code.config import AppConfig
 from deep_code.prompts import (
-    BUG_FIXER_PROMPT,
-    CODE_EXPLAINER_PROMPT,
-    CODE_GENERATOR_PROMPT,
-    CODE_REVIEWER_PROMPT,
     ORCHESTRATOR_PROMPT,
+)
+from deep_code.subagents import (
+    build_subagents as build_registered_subagents,
+    render_subagent_catalog,
 )
 from deep_code.tools import get_custom_tools
 
@@ -42,50 +43,8 @@ def _build_chat_model(config: AppConfig) -> Any:
 
 
 def build_subagents(model: Any) -> list[SubAgent]:
-    """Create the four specialized subagent specifications.
-
-    Each subagent inherits the parent's filesystem and execute tools
-    automatically. We only specify name, description, system_prompt,
-    and model.
-    """
-    return [
-        SubAgent(
-            name="code-generator",
-            description=(
-                "Generates new code: functions, classes, modules, and full files. "
-                "Use for any request to write or create new code."
-            ),
-            system_prompt=CODE_GENERATOR_PROMPT,
-            model=model,
-        ),
-        SubAgent(
-            name="code-reviewer",
-            description=(
-                "Reviews existing code for bugs, style issues, performance, "
-                "and security. Use when user asks for code review or audit."
-            ),
-            system_prompt=CODE_REVIEWER_PROMPT,
-            model=model,
-        ),
-        SubAgent(
-            name="code-explainer",
-            description=(
-                "Reads and explains code in detail. Use when user asks "
-                "'what does this do' or 'explain this code'."
-            ),
-            system_prompt=CODE_EXPLAINER_PROMPT,
-            model=model,
-        ),
-        SubAgent(
-            name="bug-fixer",
-            description=(
-                "Diagnoses and fixes bugs using a reproduce-diagnose-fix-verify cycle. "
-                "Use when user reports a bug, test failure, or error."
-            ),
-            system_prompt=BUG_FIXER_PROMPT,
-            model=model,
-        ),
-    ]
+    """Create runtime subagent specifications from the built-in registry."""
+    return build_registered_subagents(model)
 
 
 def _load_agents_md(workspace: Path) -> str | None:
@@ -158,7 +117,11 @@ def _build_system_prompt(workspace: Path, language: str = "zh") -> str:
     AGENTS.md project context and skill definitions from skills/ and
     .agents/skills/.
     """
-    parts: list[str] = [ORCHESTRATOR_PROMPT]
+    parts: list[str] = [
+        ORCHESTRATOR_PROMPT,
+        render_subagent_catalog(),
+        render_collaboration_playbook(),
+    ]
 
     # Load AGENTS.md as project context
     agents_md = _load_agents_md(workspace)

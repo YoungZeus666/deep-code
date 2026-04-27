@@ -19,12 +19,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
 **交互命令:**
 - `/help`      — 显示帮助信息
+- `/agent`     — 显式指定子 Agent 执行任务
 - `/model`     — 显示当前模型
 - `/workspace` — 显示当前工作区
 - `/language`  — 切换语言 (zh/en)
 - `/clear`     — 清除对话历史
 - `/init`      — 初始化项目 (生成 AGENTS.md)
-- `/mode`      — 切换模式 (agent/plan)
+- `/plan`      — 进入计划模式
 - `/quit`      — 退出应用
 
 **功能:**
@@ -33,6 +34,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 - **解释**代码: "handle_request 函数是做什么的？"
 - **修复**缺陷: "这个测试报了 IndexError..."
 - **计划模式**: 输入 /mode plan 进入三步式编码
+- **显式测试编写**: "/agent test-writer 为 src/deep_code/cli.py 补测试"
 """,
         "welcome_title": "欢迎",
         "welcome_body": (
@@ -97,6 +99,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "mode_invalid_arg": "[yellow]无效参数: {arg}。可用: agent, plan[/yellow]",
         "mode_available_modes": "可用模式: [cyan]agent[/cyan] (默认), [cyan]plan[/cyan]",
         "plan_ask_question": "请描述你想要完成的任务或问题：",
+        "agent_usage": "[yellow]用法: /agent <name> <task>[/yellow]\n[dim]可用 agent: {agents}[/dim]",
+        "agent_unknown": "[yellow]未知 agent: {agent}[/yellow]",
+        "agent_missing_task": "[yellow]请为 agent `{agent}` 提供任务内容。[/yellow]",
+        "agent_available_list": "[dim]可用 agent: {agents}[/dim]",
     },
     "en": {
         "help_text": """\
@@ -107,6 +113,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
 **Interactive commands:**
 - `/help`      — Show this help message
+- `/agent`     — Route a request to a specific subagent
 - `/model`     — Show current model
 - `/workspace` — Show current workspace
 - `/language`  — Switch language (zh/en)
@@ -120,7 +127,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 - Ask to **review** code: "Review the code in src/main.py"
 - Ask to **explain** code: "What does the handle_request function do?"
 - Ask to **fix bugs**: "This test is failing with IndexError..."
-- Use **plan mode**: Type /mode plan for step-by-step coding
+- Use **test-writer explicitly**: "/agent test-writer add tests for src/deep_code/cli.py"
+- Use **plan mode**: Type /plan for step-by-step coding
 """,
         "welcome_title": "Welcome",
         "welcome_body": (
@@ -184,6 +192,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "mode_invalid_arg": "[yellow]Invalid argument: {arg}. Available: agent, plan[/yellow]",
         "mode_available_modes": "Available modes: [cyan]agent[/cyan] (default), [cyan]plan[/cyan]",
         "plan_ask_question": "Describe the task or problem you want to accomplish:",
+        "agent_usage": "[yellow]Usage: /agent <name> <task>[/yellow]\n[dim]Available agents: {agents}[/dim]",
+        "agent_unknown": "[yellow]Unknown agent: {agent}[/yellow]",
+        "agent_missing_task": "[yellow]Please provide a task for agent `{agent}`.[/yellow]",
+        "agent_available_list": "[dim]Available agents: {agents}[/dim]",
     },
 }
 
