@@ -14,6 +14,7 @@ from langchain_openai import ChatOpenAI
 from rich.console import Console
 from rich.panel import Panel
 
+from deep_code.agents import get_agent_run_config
 from deep_code.i18n import t
 
 __all__ = ["run_plan_mode"]
@@ -199,9 +200,14 @@ def _stream_agent(agent, messages: list, console: Console) -> None:
     """Stream agent execution with rich tool call display."""
     input_state = {"messages": messages}
     tool_calls_shown: set[str] = set()
+    run_config = get_agent_run_config()
 
     try:
-        for chunk, metadata in agent.stream(input_state, stream_mode="messages"):
+        for chunk, metadata in agent.stream(
+            input_state,
+            config=run_config,
+            stream_mode="messages",
+        ):
             from langchain_core.messages import AIMessageChunk
             if isinstance(chunk, AIMessageChunk):
                 if chunk.content:

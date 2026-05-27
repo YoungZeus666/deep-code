@@ -48,6 +48,11 @@ Deep Code
 │   ├── /language command for runtime switching
 │   └── DEEP_CODE_LANGUAGE env var for default
 │
+├── Observability (Langfuse)
+│   ├── Optional LLM tracing via Langfuse callback
+│   ├── Zero-config when credentials absent — tracing silently disabled
+│   └── Configurable host for self-hosted Langfuse deployments
+│
 ├── Built-in Tools (from Deep Agents)
 │   ├── Filesystem: ls, read_file, write_file, edit_file, glob, grep
 │   ├── Execution: execute (shell commands)
@@ -130,6 +135,9 @@ The **OpenAI-Like** mode works with any OpenAI-compatible endpoint: Qwen, MiniMa
 | `OPENAI_LIKE_MODEL` | - | Model name for OpenAI-Like endpoint |
 | `DEEP_CODE_WORKSPACE` | Current directory | Working directory for file operations |
 | `DEEP_CODE_LANGUAGE` | `zh` | Interface language (`zh` or `en`) |
+| `LANGFUSE_PUBLIC_KEY` | - | Langfuse public key (enables tracing when set) |
+| `LANGFUSE_SECRET_KEY` | - | Langfuse secret key (enables tracing when set) |
+| `LANGFUSE_HOST` | Langfuse cloud | Override for self-hosted Langfuse (e.g. `http://localhost:3000`) |
 
 ## Usage
 
@@ -184,6 +192,19 @@ Supported detection:
 - **18 languages**: Python, JavaScript, TypeScript, Java, Go, Rust, Ruby, PHP, Swift, Kotlin, C#, C++, C, Dart, Lua, Scala, Zig, Elixir
 - **30+ frameworks**: Django, Flask, FastAPI, Next.js, Nuxt, Vite, Angular, Vue, Svelte, React, Spring, Cargo, Docker, GitHub Actions, and more
 
+## Observability
+
+Deep Code integrates with [Langfuse](https://langfuse.com) for LLM tracing. Set the following env vars to enable:
+
+```bash
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+# Optional: override for self-hosted Langfuse
+LANGFUSE_HOST=http://localhost:3000
+```
+
+Tracing is **opt-in**: when the keys are absent, the system starts normally with no tracing and no errors. Traces are attached as LangChain callbacks, so every orchestrator and subagent invocation is captured automatically.
+
 ## Skill System
 
 Skills are markdown files that extend the orchestrator's capabilities. They are loaded from two directories:
@@ -211,6 +232,7 @@ src/deep_code/
 ├── cli.py            # Interactive REPL, streaming, slash commands
 ├── agent_commands.py # `/agent` parser and explicit routing helpers
 ├── agents.py         # Orchestrator factory, system prompt assembly
+├── observability.py  # Langfuse tracing — returns CallbackHandler or None
 ├── config.py         # AppConfig, provider auto-detection from env vars
 ├── init.py           # deep-code init — project scanner, AGENTS.md generator
 ├── prompts.py        # System prompts for orchestrator and built-in subagents

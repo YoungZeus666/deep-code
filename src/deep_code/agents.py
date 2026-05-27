@@ -12,6 +12,7 @@ from langgraph.graph.state import CompiledStateGraph
 
 from deep_code.collaboration import render_collaboration_playbook
 from deep_code.config import AppConfig
+from deep_code.observability import get_langfuse_run_config
 from deep_code.prompts import (
     ORCHESTRATOR_PROMPT,
 )
@@ -152,6 +153,7 @@ def create_coding_agent(config: AppConfig) -> CompiledStateGraph:
     """
     backend = LocalShellBackend(
         root_dir=config.workspace,
+        virtual_mode=True,
     )
     model = _build_chat_model(config)
     subagents = build_subagents(model)
@@ -166,3 +168,8 @@ def create_coding_agent(config: AppConfig) -> CompiledStateGraph:
         tools=custom_tools if custom_tools else None,
         name="deep-code",
     )
+
+
+def get_agent_run_config() -> dict[str, list[object]] | None:
+    """Build per-run config such as callbacks for the compiled agent."""
+    return get_langfuse_run_config()

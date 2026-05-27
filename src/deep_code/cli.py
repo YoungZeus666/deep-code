@@ -18,7 +18,7 @@ from deep_code.agent_commands import (
     build_agent_routing_message,
     parse_agent_command,
 )
-from deep_code.agents import create_coding_agent
+from deep_code.agents import create_coding_agent, get_agent_run_config
 from deep_code.config import AppConfig, load_config, get_trusted_workspaces, add_trusted_workspace
 from deep_code.i18n import SUPPORTED_LANGUAGES, set_language, t
 from deep_code.session import list_sessions, load_session, save_session
@@ -204,9 +204,14 @@ def stream_response(agent, messages: list, console: Console) -> list:
     input_state = {"messages": messages}
     accumulated_text = ""
     tool_calls_shown: set[str] = set()
+    run_config = get_agent_run_config()
 
     try:
-        for chunk, metadata in agent.stream(input_state, stream_mode="messages"):
+        for chunk, metadata in agent.stream(
+            input_state,
+            config=run_config,
+            stream_mode="messages",
+        ):
             if isinstance(chunk, AIMessageChunk):
                 # Accumulate text content
                 if chunk.content:
