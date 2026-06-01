@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from deep_code.agent_commands import (
+from deep_code.cli.commands import (
     AgentCommandError,
     build_agent_routing_message,
     parse_agent_command,

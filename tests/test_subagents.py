@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from deep_code.collaboration import CommitReport, ReviewReport
-from deep_code.subagents import (
+from deep_code.agents.collaboration import CommitReport, ReviewReport
+from deep_code.agents.registry import (
     build_subagents,
     get_subagent_names,
     get_subagent_specs,

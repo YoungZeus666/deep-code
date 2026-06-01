@@ -3,11 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import sentinel
 
-from deep_code.config import AppConfig
+from deep_code.core.config import AppConfig
 
 
 def test_create_coding_agent_does_not_pass_callbacks(monkeypatch, tmp_path: Path) -> None:
-    from deep_code import agents as agents_module
+    from deep_code.agents import factory as agents_module
 
     captured: dict = {}
     backend_calls: list[dict] = []
@@ -46,7 +46,7 @@ def test_create_coding_agent_does_not_pass_callbacks(monkeypatch, tmp_path: Path
 
 
 def test_get_agent_run_config_proxies_langfuse_config(monkeypatch) -> None:
-    from deep_code import agents as agents_module
+    from deep_code.agents import factory as agents_module
 
     monkeypatch.setattr(
         agents_module,

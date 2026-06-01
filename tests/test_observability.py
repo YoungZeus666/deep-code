@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 
 def _reload():
-    import deep_code.observability as m
+    import deep_code.runtime.observability as m
     importlib.reload(m)
     return m
 
