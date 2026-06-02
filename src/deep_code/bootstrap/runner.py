@@ -9,7 +9,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from deep_code._detection_maps import (
+from deep_code.bootstrap.detection import (
     _EXT_TO_LANG,
     _FRAMEWORK_MARKERS,
     _SKIP_DIRS,
@@ -269,7 +269,7 @@ def generate_agents_md(info: dict) -> str:
     if key_files:
         sections.append("## Key Files\n")
         for name, desc in key_files:
-            sections.append(f"- `{name}` — {desc}")
+            sections.append(f"- `{name}` -- {desc}")
         sections.append("")
 
     # Dev commands
@@ -307,7 +307,7 @@ def generate_empty_agents_md() -> str:
 
 ## Directory Structure
 
-(Empty project — structure will be filled in as files are added.)
+(Empty project -- structure will be filled in as files are added.)
 
 ## Agent Instructions
 

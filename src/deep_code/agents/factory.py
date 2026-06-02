@@ -10,26 +10,24 @@ from deepagents.backends import LocalShellBackend
 from langchain_openai import ChatOpenAI
 from langgraph.graph.state import CompiledStateGraph
 
-from deep_code.collaboration import render_collaboration_playbook
-from deep_code.config import AppConfig
-from deep_code.observability import get_langfuse_run_config
-from deep_code.prompts import (
-    ORCHESTRATOR_PROMPT,
-)
-from deep_code.subagents import (
+from deep_code.agents.collaboration import render_collaboration_playbook
+from deep_code.core.config import AppConfig
+from deep_code.runtime.observability import get_langfuse_run_config
+from deep_code.agents.prompts import ORCHESTRATOR_PROMPT
+from deep_code.agents.registry import (
     build_subagents as build_registered_subagents,
     render_subagent_catalog,
 )
-from deep_code.tools import get_custom_tools
+from deep_code.runtime.tools import get_custom_tools
 
 
 def _build_chat_model(config: AppConfig) -> Any:
     """Build a chat model instance from config.
 
     Three modes:
-      - anthropic → "anthropic:<model>" string, resolved by Deep Agents
-      - openai    → "openai:<model>" string, resolved by Deep Agents
-      - openai-like → ChatOpenAI instance with custom base_url and api_key,
+      - anthropic -> "anthropic:<model>" string, resolved by Deep Agents
+      - openai    -> "openai:<model>" string, resolved by Deep Agents
+      - openai-like -> ChatOpenAI instance with custom base_url and api_key,
         compatible with any OpenAI-like endpoint (Qwen, MiniMax, Kimi,
         DeepSeek, GLM, Doubao, Ollama, vLLM, LiteLLM, etc.).
     """
@@ -39,7 +37,7 @@ def _build_chat_model(config: AppConfig) -> Any:
             base_url=config.base_url,
             api_key=config.api_key,
         )
-    # Native provider — pass "provider:model" string for Deep Agents
+    # Native provider -- pass "provider:model" string for Deep Agents
     return f"{config.provider}:{config.model_name}"
 
 
@@ -93,7 +91,7 @@ def _load_all_skills(workspace: Path) -> list[tuple[str, str]]:
     """Load skills from both skills/ and .agents/skills/ directories.
 
     Root-level skills/ is loaded first, then .agents/skills/.
-    Duplicates (same name) are kept — both are included.
+    Duplicates (same name) are kept -- both are included.
     """
     skills: list[tuple[str, str]] = []
     skills.extend(_load_skills_from_dir(workspace / "skills"))

@@ -10,7 +10,7 @@ Deep Code
 │   ├── Streaming response with real-time token output
 │   ├── Tool call visualization
 │   ├── Conversation history management
-│   └── Slash commands (/help, /agent, /model, /workspace, /language, /clear, /plan, /quit)
+│   └── Slash commands (/help, /agent, /model, /workspace, /language, /clear, /init, /plan, /mode, /quit)
 │
 ├── Orchestrator Agent
 │   ├── Intelligent task routing — delegates to subagents or handles directly
@@ -43,6 +43,15 @@ Deep Code
 │   ├── Directory tree generation
 │   └── Generates AGENTS.md + .agents/ scaffold
 │
+├── Session Persistence
+│   ├── Auto-saves conversation history per workspace
+│   ├── Restore recent sessions at startup (up to 3 shown)
+│   └── Configurable max sessions via DEEP_CODE_MAX_SESSIONS
+│
+├── Workspace Trust
+│   ├── Prompts once for workspace confirmation
+│   └── Persists trusted workspaces to ~/.config/deep-code/trusted.json
+│
 ├── Internationalization (i18n)
 │   ├── Chinese (default) / English
 │   ├── /language command for runtime switching
@@ -59,7 +68,7 @@ Deep Code
 │   └── Planning: write_todos, task (subagent delegation)
 │
 └── Extension Point
-    └── tools.py — add custom tools, merged with built-in tools
+    └── runtime/tools.py — add custom tools, merged with built-in tools
 ```
 
 ## Architecture
@@ -135,6 +144,7 @@ The **OpenAI-Like** mode works with any OpenAI-compatible endpoint: Qwen, MiniMa
 | `OPENAI_LIKE_MODEL` | - | Model name for OpenAI-Like endpoint |
 | `DEEP_CODE_WORKSPACE` | Current directory | Working directory for file operations |
 | `DEEP_CODE_LANGUAGE` | `zh` | Interface language (`zh` or `en`) |
+| `DEEP_CODE_MAX_SESSIONS` | `20` | Max saved sessions per workspace |
 | `LANGFUSE_PUBLIC_KEY` | - | Langfuse public key (enables tracing when set) |
 | `LANGFUSE_SECRET_KEY` | - | Langfuse secret key (enables tracing when set) |
 | `LANGFUSE_HOST` | Langfuse cloud | Override for self-hosted Langfuse (e.g. `http://localhost:3000`) |
@@ -165,6 +175,10 @@ deep-code init /path/to/project
 | `/language zh` | Switch to Chinese |
 | `/language en` | Switch to English |
 | `/clear` | Clear conversation history |
+| `/init` | Re-generate AGENTS.md for the current workspace |
+| `/plan` | Enter plan mode |
+| `/mode agent` | Switch to agent mode |
+| `/mode plan` | Switch to plan mode |
 | `/quit` | Exit the application |
 
 ### Example Prompts
@@ -174,7 +188,7 @@ You > Write a Python function that implements binary search
 You > Review the code in src/main.py
 You > Explain how the authentication middleware works
 You > This test is failing with KeyError, can you fix it?
-You > /agent test-writer add tests for src/deep_code/cli.py
+You > /agent test-writer add tests for src/deep_code/cli/app.py
 ```
 
 ## Project Initialization
@@ -229,23 +243,32 @@ Skill content is appended to the system prompt at startup. The `/language` comma
 src/deep_code/
 ├── __init__.py       # Package version
 ├── __main__.py       # python -m deep_code entry point
-├── cli.py            # Interactive REPL, streaming, slash commands
-├── agent_commands.py # `/agent` parser and explicit routing helpers
-├── agents.py         # Orchestrator factory, system prompt assembly
-├── observability.py  # Langfuse tracing — returns CallbackHandler or None
-├── config.py         # AppConfig, provider auto-detection from env vars
-├── init.py           # deep-code init — project scanner, AGENTS.md generator
-├── prompts.py        # System prompts for orchestrator and built-in subagents
-├── subagents.py      # Built-in subagent registry and catalog rendering
-├── i18n.py           # Translation dictionaries (zh/en), language switching
-└── tools.py          # Custom tool extension point
+├── agents/
+│   ├── factory.py        # Orchestrator factory, system prompt assembly
+│   ├── registry.py       # Built-in subagent registry and catalog rendering
+│   ├── prompts.py        # System prompts for orchestrator and built-in subagents
+│   └── collaboration.py  # Structured reports + collaboration playbook
+├── bootstrap/
+│   ├── runner.py         # deep-code init — project scanner, AGENTS.md generator
+│   └── detection.py      # Language/framework detection constants
+├── cli/
+│   ├── app.py            # Interactive REPL, streaming, slash commands
+│   ├── commands.py       # /agent parser and explicit routing helpers
+│   └── plan_mode.py      # /plan and /mode command handlers
+├── core/
+│   ├── config.py         # AppConfig, provider auto-detection, trusted workspaces
+│   ├── i18n.py           # Translation dictionaries (zh/en), language switching
+│   └── session.py        # Session persistence: save/load/list/delete
+└── runtime/
+    ├── tools.py          # Custom tool extension point
+    └── observability.py  # Langfuse tracing — get_langfuse_run_config()
 ```
 
 ## Extending
 
-Add custom tools in `src/deep_code/tools.py`. They are merged with the built-in Deep Agents tools (filesystem, execute, planning, subagents).
+Add custom tools in `src/deep_code/runtime/tools.py`. They are merged with the built-in Deep Agents tools (filesystem, execute, planning, subagents).
 
-Built-in subagents are now defined through a small registry in `src/deep_code/subagents.py`. To add another one, register its metadata there and add the corresponding prompt constant in `src/deep_code/prompts.py`.
+Built-in subagents are defined through a registry in `src/deep_code/agents/registry.py`. To add another one, register its metadata there and add the corresponding prompt constant in `src/deep_code/agents/prompts.py`.
 
 To change models, set the corresponding env vars in your `.env`:
 

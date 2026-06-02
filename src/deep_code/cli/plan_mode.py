@@ -14,13 +14,13 @@ from langchain_openai import ChatOpenAI
 from rich.console import Console
 from rich.panel import Panel
 
-from deep_code.agents import get_agent_run_config
-from deep_code.i18n import t
+from deep_code.agents.factory import get_agent_run_config
+from deep_code.core.i18n import t
 
 __all__ = ["run_plan_mode"]
 
 
-# ── State ────────────────────────────────────────────────────────────────────
+# -- State --------------------------------------------------------------------
 
 @dataclass
 class PlanState:
@@ -29,7 +29,7 @@ class PlanState:
     plan_content: str = ""
 
 
-# ── Model helpers ────────────────────────────────────────────────────────────
+# -- Model helpers ------------------------------------------------------------
 
 def _build_model(config) -> ChatOpenAI | None:
     """Build a ChatOpenAI model instance from config for plan mode."""
@@ -85,7 +85,7 @@ def _stream_model(
     return accumulated
 
 
-# ── Confirmation helper ──────────────────────────────────────────────────────
+# -- Confirmation helper ------------------------------------------------------
 
 def _confirm(
     console: Console,
@@ -112,7 +112,7 @@ def _confirm(
             console.print(f"[dim]{t('plan_cancel')}[/dim]")
             return False
 
-        # User gave feedback — regenerate
+        # User gave feedback -- regenerate
         messages.append(HumanMessage(content=f"用户反馈：{answer}\n\n请根据反馈重新生成。"))
         console.print(f"\n[dim]{t('plan_regenerating')}[/dim]\n")
 
@@ -127,7 +127,7 @@ def _confirm(
     return False
 
 
-# ── Step 1: Optimize question ─────────────────────────────────────────────────
+# -- Step 1: Optimize question ------------------------------------------------
 
 def _step1_optimize(
     model,
@@ -161,7 +161,7 @@ def _step1_optimize(
     return _confirm(console, t("plan_confirm"), messages, model, "optimized_question", state)
 
 
-# ── Step 2: Generate plan ────────────────────────────────────────────────────
+# -- Step 2: Generate plan ----------------------------------------------------
 
 def _step2_plan(
     model,
@@ -194,7 +194,7 @@ def _step2_plan(
     return _confirm(console, t("plan_confirm"), messages, model, "plan_content", state)
 
 
-# ── Step 3: Execute via deep agents ──────────────────────────────────────────
+# -- Step 3: Execute via deep agents ------------------------------------------
 
 def _stream_agent(agent, messages: list, console: Console) -> None:
     """Stream agent execution with rich tool call display."""
@@ -255,7 +255,7 @@ def _step3_execute(
     _stream_agent(agent, messages, console)
 
 
-# ── Main entry ───────────────────────────────────────────────────────────────
+# -- Main entry ---------------------------------------------------------------
 
 def run_plan_mode(
     config,

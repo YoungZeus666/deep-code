@@ -13,17 +13,17 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 
-from deep_code.agent_commands import (
+from deep_code.cli.commands import (
     AgentCommandError,
     build_agent_routing_message,
     parse_agent_command,
 )
-from deep_code.agents import create_coding_agent, get_agent_run_config
-from deep_code.config import AppConfig, load_config, get_trusted_workspaces, add_trusted_workspace
-from deep_code.i18n import SUPPORTED_LANGUAGES, set_language, t
-from deep_code.session import list_sessions, load_session, save_session
-from deep_code.plan_mode import run_plan_mode
-from deep_code.subagents import get_subagent_names
+from deep_code.agents.factory import create_coding_agent, get_agent_run_config
+from deep_code.core.config import AppConfig, load_config, get_trusted_workspaces, add_trusted_workspace
+from deep_code.core.i18n import SUPPORTED_LANGUAGES, set_language, t
+from deep_code.core.session import list_sessions, load_session, save_session
+from deep_code.cli.plan_mode import run_plan_mode
+from deep_code.agents.registry import get_subagent_names
 
 SKILL_DESC_MAX_LEN = 200
 
@@ -54,7 +54,7 @@ _combined_style = Style.from_dict({
 })
 
 
-# ── Helpers ──────────────────────────────────────────────────────────
+# -- Helpers ------------------------------------------------------------------
 
 def _relative_time(iso_str: str) -> str:
     """Convert an ISO 8601 timestamp to a human-friendly relative string."""
@@ -184,7 +184,7 @@ def _handle_mode_command(
 
     if new_mode == "plan":
         # Switch to plan mode - pass current agent for Step 3 execution
-        from deep_code.plan_mode import run_plan_mode
+        from deep_code.cli.plan_mode import run_plan_mode
         current_agent = agent_ref[0] if agent_ref else None
         run_plan_mode(config, console, agent=current_agent)
         # After plan mode exits, switch back to agent mode
@@ -290,12 +290,12 @@ def main() -> None:
     """Main entry point for the CLI application.
 
     Subcommands:
-        init [path]  — Generate AGENTS.md and .agents/ for a project.
-        (no args)    — Start the interactive coding assistant.
+        init [path]  -- Generate AGENTS.md and .agents/ for a project.
+        (no args)    -- Start the interactive coding assistant.
     """
     # Route subcommands before loading the full agent config
     if len(sys.argv) > 1 and sys.argv[1] == "init":
-        from deep_code.init import run_init
+        from deep_code.bootstrap.runner import run_init
 
         target = Path(sys.argv[2]) if len(sys.argv) > 2 else None
         run_init(target)
@@ -316,7 +316,7 @@ def main() -> None:
     # Workspace trust check (skipped if already trusted)
     _check_trusted_workspace(config, console)
 
-    # ── Session restore ─────────────────────────────────────────────
+    # -- Session restore -------------------------------------------------------
     recent = list_sessions(config.workspace, limit=3)
     messages: list = []
     if recent:
@@ -333,7 +333,7 @@ def main() -> None:
         if choice.isdigit() and 1 <= int(choice) <= len(recent):
             messages = load_session(config.workspace, recent[int(choice) - 1].session_id)
             console.print(t("session_restored"))
-    # ── Init reminder + agent setup ──────────────────────────────────
+    # -- Init reminder + agent setup -------------------------------------------
     if not (config.workspace / "AGENTS.md").is_file():
         console.print(f"[yellow]{t('init_reminder')}[/yellow]")
 
@@ -383,13 +383,13 @@ def main() -> None:
 
     try:
         while True:
-            console.print("[dim]─" * console.width)
+            console.print("[dim]-" * console.width)
             try:
                 user_input = Prompt("> ", completer=_slash_completer, style=_combined_style)
             except (KeyboardInterrupt, EOFError):
                 console.print(f"\n[dim]{t('goodbye')}[/dim]")
                 break
-            console.print("[dim]─" * console.width)
+            console.print("[dim]-" * console.width)
 
             if not user_input.strip():
                 continue
@@ -439,7 +439,7 @@ def main() -> None:
                         continue
 
                 if cmd_lower == "/init":
-                    from deep_code.init import run_init
+                    from deep_code.bootstrap.runner import run_init
                     run_init(config.workspace, interactive=False)
                     continue
 

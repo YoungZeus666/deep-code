@@ -7,8 +7,8 @@ from typing import Any
 
 from deepagents import SubAgent
 
-from deep_code.collaboration import CommitReport, FixReport, ReviewReport, TestReport
-from deep_code.prompts import (
+from deep_code.agents.collaboration import CommitReport, FixReport, ReviewReport, TestReport
+from deep_code.agents.prompts import (
     BUG_FIXER_PROMPT,
     CODE_EXPLAINER_PROMPT,
     CODE_GENERATOR_PROMPT,

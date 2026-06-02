@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from deep_code.agents import _build_system_prompt
+from deep_code.agents.factory import _build_system_prompt
 
 
 def test_system_prompt_includes_dynamic_subagent_catalog(tmp_path) -> None:

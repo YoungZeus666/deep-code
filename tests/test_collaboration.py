@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from deep_code.collaboration import CommitReport, render_collaboration_playbook
+from deep_code.agents.collaboration import CommitReport, render_collaboration_playbook
 
 
 def test_collaboration_playbook_mentions_parallel_pipeline_retry_and_commit_guard() -> None:
