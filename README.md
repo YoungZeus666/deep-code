@@ -1,6 +1,23 @@
 # Deep Code
 
+[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 AI programming assistant built on the [LangChain Deep Agents](https://github.com/langchain-ai/deepagents) framework.
+
+## Quick Start
+
+```bash
+# Clone and install
+git clone https://github.com/Yangzhi1201/deep-code.git
+cd deep-code
+pip install -e .
+
+# Start using Deep Code
+deep-code
+```
+
+For detailed setup and configuration, see [Installation](#installation) and [Configuration](#configuration).
 
 ## Feature Map
 
@@ -148,6 +165,7 @@ The **OpenAI-Like** mode works with any OpenAI-compatible endpoint: Qwen, MiniMa
 | `LANGFUSE_PUBLIC_KEY` | - | Langfuse public key (enables tracing when set) |
 | `LANGFUSE_SECRET_KEY` | - | Langfuse secret key (enables tracing when set) |
 | `LANGFUSE_HOST` | Langfuse cloud | Override for self-hosted Langfuse (e.g. `http://localhost:3000`) |
+| `LANGFUSE_BASE_URL` | - | Alternative to `LANGFUSE_HOST`; base URL for self-hosted Langfuse |
 
 ## Usage
 
@@ -219,6 +237,21 @@ LANGFUSE_HOST=http://localhost:3000
 
 Tracing is **opt-in**: when the keys are absent, the system starts normally with no tracing and no errors. Traces are attached as LangChain callbacks, so every orchestrator and subagent invocation is captured automatically.
 
+## Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+```
+
+## Documentation
+
+- [`docs/`](docs/) — In-depth design documents and architecture notes
+- [`PLAN.md`](PLAN.md) — Project roadmap and development priorities
+
 ## Skill System
 
 Skills are markdown files that extend the orchestrator's capabilities. They are loaded from two directories:
@@ -264,6 +297,8 @@ src/deep_code/
     └── observability.py  # Langfuse tracing — get_langfuse_run_config()
 ```
 
+Also see [`docs/`](docs/) for design documents and [`PLAN.md`](PLAN.md) for the project roadmap.
+
 ## Extending
 
 Add custom tools in `src/deep_code/runtime/tools.py`. They are merged with the built-in Deep Agents tools (filesystem, execute, planning, subagents).
@@ -301,6 +336,24 @@ OPENAI_LIKE_MODEL=llama3
 OPENAI_LIKE_API_KEY=ollama
 OPENAI_LIKE_BASE_URL=http://localhost:11434/v1
 ```
+
+## Contributing
+
+Contributions are welcome! To set up a development environment:
+
+```bash
+git clone https://github.com/Yangzhi1201/deep-code.git
+cd deep-code
+pip install -e .
+```
+
+Before submitting a pull request, please run the tests to ensure nothing is broken:
+
+```bash
+pytest
+```
+
+See [PLAN.md](PLAN.md) for the project roadmap.
 
 ## License
 
